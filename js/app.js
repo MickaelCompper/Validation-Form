@@ -16,11 +16,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // 0 - Block Refresh
         event.preventDefault()
         // 1 - Get inputs
-        const $inputs = this.querySelectorAll('input')
+        const $inputs = this.querySelectorAll('input') 
+        
         // Ajout du nécessaire pour gérer les erreurs
         const error = new MyError
+        
         // Get Form Class to validate fields
-        const form = new Form
+        const form = new Form('contact', error)
+        
         // Contact form
         const contact = { name: null, email: null, age: null }
 
@@ -33,12 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     contact.name = input.value
                 }
                 else if (input.id === 'email') {
-                    form.checkEmail(input.value) ? contact.email = input.value : error.msg = input.id
+                    form.checkEmail(input.value) ? contact.email = input.value : form.error.msg = input.id
                 }
                 else {
                     // Test
                     if (isNaN(input.value)) {
-                        error.msg = input.id
+                        form.error.msg = input.id
                     }
                     else {
                         contact.age = input.value
@@ -47,15 +50,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             else {
                 // Reference Error
-                // OUT and display
-                error.msg = 'all'
+                // Hydratation de la prop `msg` de l'instance de `MyError`
+                form.error.msg = 'empty'
             }
         })
 
         // Check if form is Valid
-        if (error.msg === null) {
+        if (form.error.msg === null) {
             // Enregistrement du contact avec le LS
             form.saveToLS(contact)
+            
             // Display all contacts
             const contacts = form.getFormLS()
 
@@ -66,10 +70,17 @@ document.addEventListener('DOMContentLoaded', function() {
             })
         }
         else {
-            document.querySelector('.error').textContent = error.msg === 'all' ? 'Tous les champs ne sont pas remplis' : `Le champ en erreur est : ${error.msg}`
-            setTimeout(() => document.querySelector('.error').textContent = '', 3000)
+            // Display error message
+            document.querySelector('.error').textContent = form.error.msg === 'empty' ? 'Tous les champs ne sont pas remplis' : `Le champ en erreur est : ${form.error.msg}`
+            // Timer de 3sec, pour faire disparaitre le msg d'erreur
+            setTimeout(() => {
+                // On cache l'affichage
+                document.querySelector('.error').textContent = ''
+                // On remet à null pour ne pas afficher d'erreur lors de la prochaine soumission, s'il n'y en a pas
+                this.error = null
+            }, 3000)
         }
-        // Vider le form après traitement
+        // Vider le form après traitement (Simulation d'un click sur un btn type=reset)
         this.reset()
     })
 })
